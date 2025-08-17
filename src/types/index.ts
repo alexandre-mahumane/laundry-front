@@ -94,8 +94,8 @@ export interface CreateLaundryData {
 // ============================================
 
 export const OperatorStatus = {
-  ACTIVE: 'ACTIVE',
-  INACTIVE: 'INACTIVE',
+  ACTIVE: 'active',
+  INACTIVE: 'inactive',
 } as const
 
 export type OperatorStatus =
@@ -103,24 +103,29 @@ export type OperatorStatus =
 
 export interface Operator {
   id: string
-  name: string
+  username: string
   email: string
   phone: string
-  status: OperatorStatus
-  laundryId: string
+  password: string
+  status: string // 'active' | 'inactive'
+  adminType?: string
+  role: string // 'operator' | 'supervisor'
+  laundryId?: string
   laundry?: Laundry
-  userId: string
+  userId?: string
   user?: User
-  createdAt: string
-  updatedAt: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface CreateOperatorData {
-  name: string
+  username: string
   email: string
   phone: string
-  laundryId: string
   password: string
+  status?: string
+  role?: string
+  adminType?: string
 }
 
 // ============================================

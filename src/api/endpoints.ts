@@ -44,10 +44,10 @@ export const endpoints = {
 
   // Operators
   operators: {
-    list: '/operator',
-    create: '/operator',
+    list: '/operator/admin/all',
+    create: '/operator/create-operator',
     get: (id: string) => `/operator/${id}`,
-    update: (id: string) => `/operator/${id}`,
+    update: (id: string) => `/users/update/${id}`,
     delete: (id: string) => `/operator/${id}`,
     byLaundry: (laundryId: string) => `/operator/laundry/${laundryId}`,
   },

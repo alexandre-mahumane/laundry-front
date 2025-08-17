@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Card,
   CardContent,
@@ -27,6 +27,15 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -34,49 +43,57 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Plus, Edit, Users, UserCheck, UserX, Key } from 'lucide-react'
+import { Plus, Edit, Users, UserCheck, UserX, Trash2 } from 'lucide-react'
+import { useOperators } from '@/hooks/useOperators'
+import { useToast } from '@/components/common/Toast'
+import type { Operator } from '@/types'
 
 export function OperatorManagement() {
-  const [operators, setOperators] = useState([
-    {
-      id: 1,
-      name: 'João Silva',
-      email: 'joao@lavandaria.com',
-      phone: '+351 910 123 456',
-      status: 'Ativo',
-      role: 'Operador',
-      lastLogin: '2024-01-15 14:30',
-      createdAt: '2024-01-01',
-    },
-    {
-      id: 2,
-      name: 'Maria Santos',
-      email: 'maria@lavandaria.com',
-      phone: '+351 920 654 321',
-      status: 'Ativo',
-      role: 'Operador',
-      lastLogin: '2024-01-15 09:15',
-      createdAt: '2024-01-05',
-    },
-    {
-      id: 3,
-      name: 'Pedro Costa',
-      email: 'pedro@lavandaria.com',
-      phone: '+351 930 987 654',
-      status: 'Inativo',
-      role: 'Operador',
-      lastLogin: '2024-01-10 16:45',
-      createdAt: '2024-01-10',
-    },
-  ])
+  const {
+    operators,
+    fetchAll,
+    create,
+    update,
+    delete: deleteOperator,
+  } = useOperators()
+  const { showToast } = useToast()
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [selectedOperator, setSelectedOperator] = useState<any>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedOperator, setSelectedOperator] = useState<Operator | null>(
+    null
+  )
 
-  const activeOperators = operators.filter((op) => op.status === 'Ativo').length
+  // Form states for create
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: 'operator',
+    status: 'active',
+  })
+
+  // Form states for edit
+  const [editFormData, setEditFormData] = useState({
+    username: '',
+    email: '',
+    phone: '',
+    role: 'operator',
+    status: 'active',
+  })
+
+  // Load operators on mount
+  useEffect(() => {
+    fetchAll()
+  }, [fetchAll])
+
+  const activeOperators = operators.filter(
+    (op) => op.status === 'active'
+  ).length
   const inactiveOperators = operators.filter(
-    (op) => op.status === 'Inativo'
+    (op) => op.status === 'inactive'
   ).length
 
   return (
@@ -107,8 +124,15 @@ export function OperatorManagement() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="operator-name">Nome Completo</Label>
-                <Input id="operator-name" placeholder="Nome do operador" />
+                <Label htmlFor="operator-username">Nome de Usuário</Label>
+                <Input
+                  id="operator-username"
+                  placeholder="Nome do operador"
+                  value={formData.username}
+                  onChange={(e) =>
+                    setFormData({ ...formData, username: e.target.value })
+                  }
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="operator-email">Email</Label>
@@ -116,11 +140,22 @@ export function OperatorManagement() {
                   id="operator-email"
                   type="email"
                   placeholder="email@exemplo.com"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                 />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="operator-phone">Telefone</Label>
-                <Input id="operator-phone" placeholder="+351 xxx xxx xxx" />
+                <Input
+                  id="operator-phone"
+                  placeholder="+351 xxx xxx xxx"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="operator-password">Senha Inicial</Label>
@@ -128,33 +163,81 @@ export function OperatorManagement() {
                   id="operator-password"
                   type="password"
                   placeholder="Senha temporária"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                 />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="operator-role">Função</Label>
-                <Select>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, role: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecionar função" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="operador">Operador</SelectItem>
+                    <SelectItem value="operator">Operador</SelectItem>
                     <SelectItem value="supervisor">Supervisor</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex items-center space-x-2">
-                <Switch id="operator-active" defaultChecked />
+                <Switch
+                  id="operator-active"
+                  checked={formData.status === 'active'}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      status: checked ? 'active' : 'inactive',
+                    })
+                  }
+                />
                 <Label htmlFor="operator-active">Operador ativo</Label>
               </div>
             </div>
             <div className="flex justify-end gap-3">
               <Button
                 variant="outline"
-                onClick={() => setIsAddDialogOpen(false)}
+                onClick={() => {
+                  setIsAddDialogOpen(false)
+                  setFormData({
+                    username: '',
+                    email: '',
+                    phone: '',
+                    password: '',
+                    role: 'operator',
+                    status: 'active',
+                  })
+                }}
               >
                 Cancelar
               </Button>
-              <Button onClick={() => setIsAddDialogOpen(false)}>
+              <Button
+                onClick={async () => {
+                  const newOperator = await create(formData)
+                  if (newOperator) {
+                    showToast('success', `Operador ${newOperator.username} criado com sucesso!`)
+                    setIsAddDialogOpen(false)
+                    setFormData({
+                      username: '',
+                      email: '',
+                      phone: '',
+                      password: '',
+                      role: 'operator',
+                      status: 'active',
+                    })
+                    // Refresh tabela
+                    await fetchAll()
+                  } else {
+                    showToast('error', 'Erro ao criar operador. Tente novamente.')
+                  }
+                }}
+              >
                 Criar Operador
               </Button>
             </div>
@@ -218,21 +301,7 @@ export function OperatorManagement() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm bg-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Online Agora
-                </p>
-                <p className="text-2xl font-bold text-primary mt-2">2</p>
-              </div>
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <UserCheck className="w-6 h-6 text-primary" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+     
       </div>
 
       {/* Operators Table */}
@@ -245,35 +314,30 @@ export function OperatorManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nome</TableHead>
+                <TableHead>Nome de Usuário</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Telefone</TableHead>
-                <TableHead>Função</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Último Login</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {operators.map((operator) => (
                 <TableRow key={operator.id}>
-                  <TableCell className="font-medium">{operator.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {operator.username}
+                  </TableCell>
                   <TableCell>{operator.email}</TableCell>
                   <TableCell>{operator.phone}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{operator.role}</Badge>
-                  </TableCell>
+             
                   <TableCell>
                     <Badge
                       variant={
-                        operator.status === 'Ativo' ? 'default' : 'secondary'
+                        operator.status === 'active' ? 'default' : 'secondary'
                       }
                     >
-                      {operator.status}
+                      {operator.status === 'active' ? 'Ativo' : 'Inativo'}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-500">
-                    {operator.lastLogin}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -282,13 +346,27 @@ export function OperatorManagement() {
                         size="sm"
                         onClick={() => {
                           setSelectedOperator(operator)
+                          setEditFormData({
+                            username: operator.username,
+                            email: operator.email,
+                            phone: operator.phone,
+                            role: operator.role,
+                            status: operator.status,
+                          })
                           setIsEditDialogOpen(true)
                         }}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
-                        <Key className="w-4 h-4" />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedOperator(operator)
+                          setIsDeleteDialogOpen(true)
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -305,15 +383,18 @@ export function OperatorManagement() {
           <DialogHeader>
             <DialogTitle>Editar Operador</DialogTitle>
             <DialogDescription>
-              Alterar dados do operador {selectedOperator?.name}
+              Alterar dados do operador {selectedOperator?.username}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="edit-operator-name">Nome Completo</Label>
+              <Label htmlFor="edit-operator-username">Nome de Usuário</Label>
               <Input
-                id="edit-operator-name"
-                defaultValue={selectedOperator?.name}
+                id="edit-operator-username"
+                value={editFormData.username}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, username: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
@@ -321,24 +402,35 @@ export function OperatorManagement() {
               <Input
                 id="edit-operator-email"
                 type="email"
-                defaultValue={selectedOperator?.email}
+                value={editFormData.email}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, email: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="edit-operator-phone">Telefone</Label>
               <Input
                 id="edit-operator-phone"
-                defaultValue={selectedOperator?.phone}
+                value={editFormData.phone}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, phone: e.target.value })
+                }
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="edit-operator-role">Função</Label>
-              <Select defaultValue={selectedOperator?.role.toLowerCase()}>
+              <Select
+                value={editFormData.role}
+                onValueChange={(value) =>
+                  setEditFormData({ ...editFormData, role: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="operador">Operador</SelectItem>
+                  <SelectItem value="operator">Operador</SelectItem>
                   <SelectItem value="supervisor">Supervisor</SelectItem>
                 </SelectContent>
               </Select>
@@ -346,15 +438,15 @@ export function OperatorManagement() {
             <div className="flex items-center space-x-2">
               <Switch
                 id="edit-operator-active"
-                defaultChecked={selectedOperator?.status === 'Ativo'}
+                checked={editFormData.status === 'active'}
+                onCheckedChange={(checked) =>
+                  setEditFormData({
+                    ...editFormData,
+                    status: checked ? 'active' : 'inactive',
+                  })
+                }
               />
               <Label htmlFor="edit-operator-active">Operador ativo</Label>
-            </div>
-            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                Para alterar a senha, use o botão "Redefinir Senha" na lista de
-                operadores.
-              </p>
             </div>
           </div>
           <div className="flex justify-end gap-3">
@@ -364,12 +456,63 @@ export function OperatorManagement() {
             >
               Cancelar
             </Button>
-            <Button onClick={() => setIsEditDialogOpen(false)}>
+            <Button
+              onClick={async () => {
+                if (selectedOperator?.id) {
+                  const updated = await update(
+                    selectedOperator.id,
+                    editFormData
+                  )
+                  if (updated) {
+                    showToast('success', `Operador ${editFormData.username} atualizado com sucesso!`)
+                    setIsEditDialogOpen(false)
+                    // Refresh tabela
+                    await fetchAll()
+                  } else {
+                    showToast('error', 'Erro ao atualizar operador. Tente novamente.')
+                  }
+                }
+              }}
+            >
               Salvar Alterações
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza que deseja deletar?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você está prestes a deletar o operador <strong>{selectedOperator?.username}</strong>. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-3">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (selectedOperator?.id) {
+                  const success = await deleteOperator(selectedOperator.id)
+                  if (success) {
+                    showToast('success', `Operador ${selectedOperator.username} deletado com sucesso!`)
+                    setIsDeleteDialogOpen(false)
+                    setSelectedOperator(null)
+                    // Refresh tabela
+                    await fetchAll()
+                  } else {
+                    showToast('error', 'Erro ao deletar operador. Tente novamente.')
+                  }
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Deletar
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
