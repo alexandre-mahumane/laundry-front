@@ -13,13 +13,13 @@ import { DashboardOverview } from './components/dashboard-overview'
 import { LaundryManagement } from './components/laundry-management'
 import { ResourceManagement } from './components/resource-management'
 import { PricingManagement } from './components/pricing-management'
-import { ReportsSection } from './components/reports-section'
+import { ReportsSection } from './components/reports-section-new'
 
 // Admin (Single Laundry) Pages
 import { LaundryDashboard } from './components/laundry-dashboard'
 import { OrderManagement } from './components/order-management'
 import { OperatorManagement } from './components/operator-management'
-import { LaundryReports } from './components/laundry-reports'
+
 import { LaundrySettings } from './components/laundry-settings'
 
 // Multi Admin Pages
@@ -54,7 +54,7 @@ const AppRoutes = () => (
             </PublicRoute>
           }
         />
-        
+
         <Route path="/client" element={<ClientPage />} />
 
         {/* Dashboard Routes - Super Admin Only */}
@@ -77,7 +77,9 @@ const AppRoutes = () => (
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={[UserRole.SINGLE_ADMIN, UserRole.OPERATOR]}>
+            <ProtectedRoute
+              allowedRoles={[UserRole.SINGLE_ADMIN, UserRole.OPERATOR]}
+            >
               <AdminLayout />
             </ProtectedRoute>
           }
@@ -92,7 +94,7 @@ const AppRoutes = () => (
               </ProtectedRoute>
             }
           />
-          <Route path="relatorios" element={<LaundryReports />} />
+          <Route path="relatorios" element={<ReportsSection />} />
           <Route
             path="configuracoes"
             element={
@@ -112,7 +114,7 @@ const AppRoutes = () => (
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/multi-admin/laundries"
           element={
@@ -121,7 +123,7 @@ const AppRoutes = () => (
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/multi-admin/operators"
           element={
@@ -130,7 +132,7 @@ const AppRoutes = () => (
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/multi-admin/services"
           element={
@@ -139,7 +141,7 @@ const AppRoutes = () => (
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/multi-admin/reports"
           element={
@@ -148,7 +150,7 @@ const AppRoutes = () => (
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/multi-admin/settings"
           element={

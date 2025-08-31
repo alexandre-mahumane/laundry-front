@@ -1,12 +1,5 @@
-import {
-  BarChart3,
-  Waves,
-  Home,
-  Store,
-  Shield,
-  DollarSign,
-} from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { BarChart3, Waves, Home, Store, Shield, DollarSign } from 'lucide-react'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
   Sidebar,
   SidebarContent,
@@ -16,44 +9,43 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/sidebar'
+import { Button } from '@/components/ui/button'
 
 const menuItems = [
   {
-    title: "Dashboard",
-    url: "/dashboard",
+    title: 'Dashboard',
+    url: '/dashboard',
     icon: Home,
   },
   {
-    title: "Lavandarias",
-    url: "/dashboard/lavandarias",
+    title: 'Lavandarias',
+    url: '/dashboard/lavandarias',
     icon: Store,
   },
   {
-    title: "Recursos",
-    url: "/dashboard/recursos",
+    title: 'Recursos',
+    url: '/dashboard/recursos',
     icon: Shield,
   },
   {
-    title: "Preços",
-    url: "/dashboard/precos",
+    title: 'Preços',
+    url: '/dashboard/precos',
     icon: DollarSign,
   },
   {
-    title: "Relatórios",
-    url: "/dashboard/relatorios",
+    title: 'Relatórios',
+    url: '/dashboard/relatorios',
     icon: BarChart3,
   },
-];
+]
 
 export function SuperAdminSidebar() {
-  const location = useLocation();
+  const location = useLocation()
   return (
     <Sidebar
-      style={{ "--sidebar-background": "210 100% 40%" } as React.CSSProperties}
+      style={{ '--sidebar-background': '210 100% 40%' } as React.CSSProperties}
       className="border-r text-white min-h-screen !bg-[#0077b6]"
     >
       <SidebarHeader className="border-b border-sidebar-border">
@@ -75,14 +67,14 @@ export function SuperAdminSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
-                const isActive = location.pathname === item.url;
+                const isActive = location.pathname === item.url
                 return (
                   <SidebarMenuItem
                     key={item.title}
                     className={
                       isActive
-                        ? "bg-[#023e8a] text-white transition-colors duration-150"
-                        : "hover:bg-[#023e8a] hover:text-white transition-colors duration-150"
+                        ? 'bg-[#023e8a] text-white transition-colors duration-150'
+                        : 'hover:bg-[#023e8a] hover:text-white transition-colors duration-150'
                     }
                   >
                     <NavLink
@@ -93,7 +85,7 @@ export function SuperAdminSidebar() {
                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuItem>
-                );
+                )
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -104,12 +96,12 @@ export function SuperAdminSidebar() {
           <Button
             variant="outline"
             className="w-full border-sidebar-border text-white hover:bg-[#023e8a] bg-transparent text-lg font-semibold"
-            onClick={() => (window.location.href = "/login")}
+            onClick={() => (window.location.href = '/login')}
           >
             Sair do Sistema
           </Button>
         </div>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }

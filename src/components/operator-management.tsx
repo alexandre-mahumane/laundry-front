@@ -221,7 +221,10 @@ export function OperatorManagement() {
                 onClick={async () => {
                   const newOperator = await create(formData)
                   if (newOperator) {
-                    showToast('success', `Operador ${newOperator.username} criado com sucesso!`)
+                    showToast(
+                      'success',
+                      `Operador ${newOperator.username} criado com sucesso!`
+                    )
                     setIsAddDialogOpen(false)
                     setFormData({
                       username: '',
@@ -234,7 +237,10 @@ export function OperatorManagement() {
                     // Refresh tabela
                     await fetchAll()
                   } else {
-                    showToast('error', 'Erro ao criar operador. Tente novamente.')
+                    showToast(
+                      'error',
+                      'Erro ao criar operador. Tente novamente.'
+                    )
                   }
                 }}
               >
@@ -300,8 +306,6 @@ export function OperatorManagement() {
             </div>
           </CardContent>
         </Card>
-
-     
       </div>
 
       {/* Operators Table */}
@@ -329,7 +333,7 @@ export function OperatorManagement() {
                   </TableCell>
                   <TableCell>{operator.email}</TableCell>
                   <TableCell>{operator.phone}</TableCell>
-             
+
                   <TableCell>
                     <Badge
                       variant={
@@ -464,12 +468,18 @@ export function OperatorManagement() {
                     editFormData
                   )
                   if (updated) {
-                    showToast('success', `Operador ${editFormData.username} atualizado com sucesso!`)
+                    showToast(
+                      'success',
+                      `Operador ${editFormData.username} atualizado com sucesso!`
+                    )
                     setIsEditDialogOpen(false)
                     // Refresh tabela
                     await fetchAll()
                   } else {
-                    showToast('error', 'Erro ao atualizar operador. Tente novamente.')
+                    showToast(
+                      'error',
+                      'Erro ao atualizar operador. Tente novamente.'
+                    )
                   }
                 }
               }}
@@ -481,12 +491,17 @@ export function OperatorManagement() {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Tem certeza que deseja deletar?</AlertDialogTitle>
             <AlertDialogDescription>
-              Você está prestes a deletar o operador <strong>{selectedOperator?.username}</strong>. Esta ação não pode ser desfeita.
+              Você está prestes a deletar o operador{' '}
+              <strong>{selectedOperator?.username}</strong>. Esta ação não pode
+              ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex justify-end gap-3">
@@ -496,13 +511,19 @@ export function OperatorManagement() {
                 if (selectedOperator?.id) {
                   const success = await deleteOperator(selectedOperator.id)
                   if (success) {
-                    showToast('success', `Operador ${selectedOperator.username} deletado com sucesso!`)
+                    showToast(
+                      'success',
+                      `Operador ${selectedOperator.username} deletado com sucesso!`
+                    )
                     setIsDeleteDialogOpen(false)
                     setSelectedOperator(null)
                     // Refresh tabela
                     await fetchAll()
                   } else {
-                    showToast('error', 'Erro ao deletar operador. Tente novamente.')
+                    showToast(
+                      'error',
+                      'Erro ao deletar operador. Tente novamente.'
+                    )
                   }
                 }
               }}

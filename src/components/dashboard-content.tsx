@@ -3,7 +3,7 @@ import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { DashboardOverview } from '@/components/dashboard-overview'
 import { LaundryManagement } from '@/components/laundry-management'
 import { ResourceManagement } from '@/components/resource-management'
-import { ReportsSection } from '@/components/reports-section'
+import { ReportsSection } from '@/components/reports-section-new'
 import { PricingManagement } from '@/components/pricing-management'
 import { LaundryDetails } from '@/components/laundry-details'
 

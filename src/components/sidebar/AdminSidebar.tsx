@@ -5,8 +5,8 @@ import {
   Users,
   ShoppingCart,
   Settings,
-} from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+} from 'lucide-react'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
   Sidebar,
   SidebarContent,
@@ -16,44 +16,43 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/sidebar'
+import { Button } from '@/components/ui/button'
 
 const menuItems = [
   {
-    title: "Dashboard",
-    url: "/admin/dashboard",
+    title: 'Dashboard',
+    url: '/admin/dashboard',
     icon: Home,
   },
   {
-    title: "Pedidos",
-    url: "/admin/pedidos",
+    title: 'Pedidos',
+    url: '/admin/pedidos',
     icon: ShoppingCart,
   },
   {
-    title: "Operadores",
-    url: "/admin/operadores",
+    title: 'Operadores',
+    url: '/admin/operadores',
     icon: Users,
   },
   {
-    title: "Relatórios",
-    url: "/admin/relatorios",
+    title: 'Relatórios',
+    url: '/admin/relatorios',
     icon: BarChart3,
   },
   {
-    title: "Configurações",
-    url: "/admin/configuracoes",
+    title: 'Configurações',
+    url: '/admin/configuracoes',
     icon: Settings,
   },
-];
+]
 
 export function AdminSidebar() {
-  const location = useLocation();
+  const location = useLocation()
   return (
     <Sidebar
-      style={{ background: "#0077b6" }}
+      style={{ background: '#0077b6' }}
       className="border-r text-white min-h-screen !bg-[#0077b6]"
     >
       <SidebarHeader className="border-b border-sidebar-border">
@@ -77,14 +76,14 @@ export function AdminSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
-                const isActive = location.pathname === item.url;
+                const isActive = location.pathname === item.url
                 return (
                   <SidebarMenuItem
                     key={item.title}
                     className={
                       isActive
-                        ? "bg-[#023e8a] text-white transition-colors duration-150"
-                        : "hover:bg-[#023e8a]  hover:text-white transition-colors duration-150"
+                        ? 'bg-[#023e8a] text-white transition-colors duration-150'
+                        : 'hover:bg-[#023e8a]  hover:text-white transition-colors duration-150'
                     }
                   >
                     <NavLink
@@ -95,7 +94,7 @@ export function AdminSidebar() {
                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuItem>
-                );
+                )
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -106,12 +105,12 @@ export function AdminSidebar() {
           <Button
             variant="outline"
             className="w-full border-sidebar-border text-white hover:bg-[#023e8a] bg-transparent text-lg font-semibold"
-            onClick={() => (window.location.href = "/login")}
+            onClick={() => (window.location.href = '/login')}
           >
             Sair do Sistema
           </Button>
         </div>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }

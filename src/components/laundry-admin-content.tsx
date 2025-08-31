@@ -3,8 +3,8 @@ import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { LaundryDashboard } from '@/components/laundry-dashboard'
 import { OrderManagement } from '@/components/order-management'
 import { OperatorManagement } from '@/components/operator-management'
-import { LaundryReports } from '@/components/laundry-reports'
 import { LaundrySettings } from '@/components/laundry-settings'
+import { ReportsSection } from './reports-section-new'
 
 export function LaundryAdminContent() {
   const [activeSection, setActiveSection] = useState('dashboard')
@@ -18,7 +18,7 @@ export function LaundryAdminContent() {
       case 'operadores':
         return <OperatorManagement />
       case 'relatorios':
-        return <LaundryReports />
+        return <ReportsSection />
       case 'configuracoes':
         return <LaundrySettings />
       default:
