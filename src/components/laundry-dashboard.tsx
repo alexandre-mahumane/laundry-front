@@ -18,14 +18,13 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
   BarChart,
   Bar,
+  LabelList,
 } from 'recharts'
 import { useEffect, useState } from 'react'
 import { api } from '@/api/client'
@@ -93,7 +92,7 @@ export function LaundryDashboard() {
 
         // 2) parallel requests for dashboard
         const [monthRes, weekRes, dayRes, thisMonthRes] = await Promise.all([
-          api.get(`/reports/laundry/${id}`),
+          api.get(`/reports/months-analytics/${id}`),
           api.get(`/order/week-analytics/${id}`),
           api.get(`/order/day-analytics/${id}`),
           api.get(`/reports/this-month-analytics/${id}`),
@@ -101,16 +100,119 @@ export function LaundryDashboard() {
 
         if (!mounted) return
 
-        // monthRes: array of { date: '8-2025', totalGain | total_gain, totalServices }
+        // monthRes can return several shapes. Normalize to { month: string, profit: number }
         const monthItems = Array.isArray(monthRes.data)
           ? monthRes.data
           : monthRes.data?.items || []
-        console.log({ monthRes })
+
+        const ptMonthsShort = [
+          'Jan',
+          'Fev',
+          'Mar',
+          'Abr',
+          'Mai',
+          'Jun',
+          'Jul',
+          'Ago',
+          'Set',
+          'Out',
+          'Nov',
+          'Dez',
+        ]
+
+        function normalizeMonthItem(m: Record<string, unknown>) {
+          // Prefer explicit month_number when available
+          const rawMonthNumber =
+            m['month_number'] ?? m['month'] ?? m['monthNumber']
+          let monthLabel = ''
+          let monthSort: number | undefined = undefined
+
+          if (
+            rawMonthNumber !== undefined &&
+            String(rawMonthNumber).trim() !== ''
+          ) {
+            const num = Number(String(rawMonthNumber).trim())
+            if (!Number.isNaN(num) && num >= 1 && num <= 12) {
+              monthLabel = ptMonthsShort[num - 1]
+              monthSort = num
+            }
+          }
+
+          // If no explicit number, try parsing a `date` field like `8-2025` or `2025-08`
+          if (!monthLabel && m['date']) {
+            const dateStr = String(m['date'])
+            // split on - or / (avoid regex escaping issues flagged by linter)
+            const parts = dateStr.includes('-')
+              ? dateStr.split('-')
+              : dateStr.split('/')
+            const maybeMonth = parts.find((p) => /^\d{1,2}$/.test(p))
+            if (maybeMonth) {
+              const num = Number(maybeMonth)
+              if (!Number.isNaN(num) && num >= 1 && num <= 12) {
+                monthLabel = ptMonthsShort[num - 1]
+                monthSort = num
+              }
+            }
+          }
+
+          // If still no label, try month_name (could be english). Map english names to number.
+          if (!monthLabel && m['month_name']) {
+            const name = String(m['month_name']).trim()
+            const key = name.toLowerCase()
+            const engMap: Record<string, number> = {
+              january: 1,
+              february: 2,
+              march: 3,
+              april: 4,
+              may: 5,
+              june: 6,
+              july: 7,
+              august: 8,
+              september: 9,
+              october: 10,
+              november: 11,
+              december: 12,
+            }
+            const found = engMap[key] ?? engMap[key.slice(0, 3)]
+            if (found) {
+              monthLabel = ptMonthsShort[found - 1]
+              monthSort = found
+            } else {
+              // fallback: use trimmed first 3 chars
+              monthLabel = name.slice(0, 3)
+            }
+          }
+
+          if (!monthLabel) {
+            monthLabel = String(m['date'] ?? m['month'] ?? '')
+          }
+
+          const profit = Number(
+            m['total_gain'] ?? m['totalGain'] ?? m['total'] ?? 0
+          )
+
+          return { month: monthLabel, profit, monthSort }
+        }
+
+        const normalized = (monthItems as Record<string, unknown>[]).map(
+          normalizeMonthItem
+        )
+
+        // Debug: dump server response and normalized data to browser console
+        // (temporary - useful to inspect in devtools)
+        console.log('monthRes.data', monthRes.data)
+        console.log('normalized months', normalized)
+
+        // Sort by month number when available (keeps chronological order within a year)
+        normalized.sort((a, b) => {
+          if (a.monthSort !== undefined && b.monthSort !== undefined) {
+            return a.monthSort - b.monthSort
+          }
+          return 0
+        })
+
         setMonthlyData(
-          (monthItems as Record<string, unknown>[]).map((m) => ({
-            month: String(m['date'] ?? ''),
-            profit: Number(m['totalGain'] ?? m['total_gain'] ?? 0),
-          }))
+          normalized.map(({ month, profit }) => ({ month, profit }))
         )
 
         // weekRes: { totalsByDay: [ { day: '2025-08-11', total_services, total_gain } ] }
@@ -118,7 +220,7 @@ export function LaundryDashboard() {
         setWeeklyData(
           (totalsByDay as Record<string, unknown>[]).map((d) => ({
             day: d['day']
-              ? new Date(String(d['day'])).toLocaleDateString(undefined, {
+              ? new Date(String(d['day'])).toLocaleDateString('pt-PT', {
                   weekday: 'short',
                 })
               : '',
@@ -199,9 +301,13 @@ export function LaundryDashboard() {
                   Pedidos Hoje
                 </p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {todayStats?.totalServices ??
-                    todayStats?.total_services ??
-                    '0'}
+                  {String(
+                    Number(
+                      todayStats?.totalServices ??
+                        todayStats?.total_services ??
+                        0
+                    )
+                  )}
                 </p>
                 <p className="text-sm mt-1 text-blue-600">&nbsp;</p>
               </div>
@@ -218,9 +324,11 @@ export function LaundryDashboard() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Lucro Hoje</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {todayStats?.totalReceivable ??
-                    todayStats?.totalReceivable ??
-                    '€0'}
+                  {todayStats && (todayStats.totalReceivable ?? null) !== null
+                    ? `€${Number(todayStats.totalReceivable).toLocaleString(
+                        'pt-PT'
+                      )}`
+                    : '€0'}
                 </p>
                 <p className="text-sm mt-1 text-green-600">&nbsp;</p>
               </div>
@@ -256,12 +364,34 @@ export function LaundryDashboard() {
                   Ticket Médio
                 </p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">
-                  {monthSummary
-                    ? `€${(
+                  {(() => {
+                    // Prefer today's ticket average when available from dayRes
+                    const todayTotalReceivable = Number(
+                      todayStats?.totalReceivable ?? 0
+                    )
+                    const todayTotalServices = Math.max(
+                      1,
+                      Number(
+                        todayStats?.totalServices ??
+                          todayStats?.total_services ??
+                          0
+                      )
+                    )
+                    if (todayStats) {
+                      const avg = todayTotalReceivable / todayTotalServices
+                      return `€${avg.toFixed(2)}`
+                    }
+
+                    // Fallback to monthSummary average
+                    if (monthSummary) {
+                      const avg =
                         Number(monthSummary.total_gain ?? 0) /
                         Math.max(1, Number(monthSummary.total_services ?? 1))
-                      ).toFixed(2)}`
-                    : '€0.00'}
+                      return `€${avg.toFixed(2)}`
+                    }
+
+                    return '€0.00'
+                  })()}
                 </p>
                 <p className="text-sm mt-1 text-orange-600">&nbsp;</p>
               </div>
@@ -311,7 +441,6 @@ export function LaundryDashboard() {
         <Card className="border-0 shadow-sm bg-white">
           <CardHeader>
             <CardTitle>Lucro Mensal</CardTitle>
-            <CardDescription>Evolução dos últimos 5 meses</CardDescription>
           </CardHeader>
           <CardContent>
             <ChartContainer
@@ -324,18 +453,30 @@ export function LaundryDashboard() {
               className="h-64"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyData}>
+                <BarChart data={monthlyData} barCategoryGap="35%">
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line
-                    type="monotone"
-                    dataKey="profit"
-                    stroke="var(--color-profit)"
-                    strokeWidth={2}
+                  <YAxis
+                    domain={[0, 'dataMax']}
+                    tickFormatter={(v) =>
+                      `€${Number(v).toLocaleString('pt-PT')}`
+                    }
                   />
-                </LineChart>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar
+                    dataKey="profit"
+                    fill={'var(--color-profit, #10b981)'}
+                    barSize={10}
+                  >
+                    <LabelList
+                      dataKey="profit"
+                      position="top"
+                      formatter={(v: number) =>
+                        `€${Number(v).toLocaleString('pt-PT')}`
+                      }
+                    />
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
