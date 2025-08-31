@@ -66,17 +66,47 @@ export type LaundryStatus = (typeof LaundryStatus)[keyof typeof LaundryStatus]
 export interface Laundry {
   id: string
   name: string
-  type: LaundryType
-  status: LaundryStatus
-  address: string
-  city: string
-  province: string
+  email: string
   phone: string
-  email?: string
-  ownerId: string
-  owner?: User
+  location: string
+  adminId: string
+  hasBilling: boolean
+  hasEmailService: boolean
+  hasSmSService: boolean
+  isDeleted: boolean
+  status: string // 'active' | 'inactive'
   createdAt: string
   updatedAt: string
+  type?: LaundryType
+  address?: string
+  city?: string
+  province?: string
+  ownerId?: string
+  owner?: User
+}
+
+export interface LaundrySettings {
+  id: string
+  name: string
+  email: string
+  phone: string
+  location: string
+  adminId: string
+  hasBilling: boolean
+  hasEmailService: boolean
+  hasSmSService: boolean
+  isDeleted: boolean
+  status: string
+}
+
+export interface UpdateLaundrySettingsData {
+  name?: string
+  email?: string
+  phone?: string
+  location?: string
+  hasBilling?: boolean
+  hasEmailService?: boolean
+  hasSmSService?: boolean
 }
 
 export interface CreateLaundryData {

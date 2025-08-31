@@ -25,6 +25,7 @@ export const endpoints = {
   // Laundry (Single)
   laundry: {
     list: '/laundry',
+    listByAdmin: `/laundry/info`,
     create: '/laundry',
     get: (id: string) => `/laundry/${id}`,
     update: (id: string) => `/laundry/${id}`,
