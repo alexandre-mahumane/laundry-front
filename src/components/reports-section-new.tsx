@@ -23,6 +23,8 @@ import {
 } from 'lucide-react'
 import { useReports } from '@/hooks/useReports'
 import { useLaundryId } from '@/store/useLaundryStore'
+import type { JSX } from 'react'
+import type { TopServiceWithPercentage } from '@/types/reports'
 
 // Helper functions
 function formatCurrency(value: number): string {
@@ -65,18 +67,34 @@ function getRankMedal(index: number) {
   )
 }
 
+interface CardMetrics {
+  totalServicesNumber: number
+  totalGainNumber: number
+  averageTicket: number
+  newClientsNumber: number
+  paidPercentage: number
+  totalPaidNumber: number
+}
+
+interface IComparisons {
+  gains: {
+    growth: number
+    growthPercentage: string
+  }
+}
+
 // Generate dynamic performance insights from metrics
 function generateInsights(
-  cardMetrics: any,
-  comparisons: any,
-  topServices: any[]
+  cardMetrics: CardMetrics,
+  comparisons: IComparisons,
+  topServices: TopServiceWithPercentage[]
 ) {
   const insights: Array<{
     id: string
     title: string
     description: string
     color?: string
-    icon?: any
+    icon?: JSX.Element
   }> = []
 
   // Total gain insight
@@ -209,7 +227,6 @@ export function ReportsSection() {
   const totalGainNumber = cardMetrics.totalGainNumber
   const averageTicket = cardMetrics.averageTicket
   const insights = generateInsights(cardMetrics, comparisons, topServices)
-  console.log('4444', { topServices })
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
